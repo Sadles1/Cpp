@@ -5,22 +5,22 @@
 int x;
 int	y;
 
-int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR szCmdLine, int nCmdShow)//òî÷êà âõîäà
+int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR szCmdLine, int nCmdShow)
 {
 	MSG msg{};
-	HWND hwnd{}; //Èíôðîìàöèÿ î îêíå
+	HWND hwnd{};
 	WNDCLASSEX wc{ sizeof(WNDCLASSEX) };
-	wc.cbClsExtra = 0; //Äîïîëíèòåëüíîå âûäåëåíèå ïàìÿòè
+	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	srand(time(NULL));
 	HBRUSH hBrush = CreateSolidBrush(RGB(0, 0, 255));
-	wc.hbrBackground = hBrush;//Îêðàñ îêíà
-	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);//Êóðñîð
-	wc.hIcon = LoadIcon(nullptr, IDI_APPLICATION);//Èêîíêà
-	wc.hIconSm = LoadIcon(nullptr, IDI_APPLICATION);//Èêîíêà â çàãîëîâêå îêíà
+	wc.hbrBackground = hBrush;
+	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+	wc.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
+	wc.hIconSm = LoadIcon(nullptr, IDI_APPLICATION);
 	wc.hInstance = hInstance;
 
-	wc.lpfnWndProc = [](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)->LRESULT//îáðàáîòêà ñîîáùåíèé
+	wc.lpfnWndProc = [](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)->LRESULT
 	{
 		switch (uMsg)
 		{
@@ -38,7 +38,7 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR szCmdLine, int nCmdS
 				RegisterHotKey(hWnd, HOTKEX, MOD_CONTROL, VK_F12);
 			}
 			return 0;
-			case WM_DESTROY://ñîîáùåíèå â ñëó÷àå âûõîäà
+			case WM_DESTROY:
 			{
 				PostQuitMessage(EXIT_SUCCESS);
 			}
@@ -59,32 +59,32 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR szCmdLine, int nCmdS
 					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(rand() % 255, rand() % 255, rand() % 255)));
 					EndPaint(hWnd, &ps);
 				}
-				if (x > 180 && y > 120)//Ïðàâûé íèæíèé óãîë
+				if (x > 180 && y > 120)
 				{
 					BeginPaint(hWnd, &ps);
 
-					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(0, 0, 255)));//ñèíèé
+					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(0, 0, 255)));
 					EndPaint(hWnd, &ps);
 				}
-				if (x > 180 && y < 120)//Ïðàâûé âåðõíèé óãîë
+				if (x > 180 && y < 120)
 				{
 					BeginPaint(hWnd, &ps);
 
-					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(255, 247, 13)));//æ¸ëòûé
+					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(255, 247, 13)));
 					EndPaint(hWnd, &ps);
 				}
-				if ( x>0 && x < 180 && y < 120 && y >0)//Ëåâûé âåðõíèé óãîë
+				if ( x>0 && x < 180 && y < 120 && y >0)
 				{
 					BeginPaint(hWnd, &ps);
 
-					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(255, 0, 0)));//êðàñíûé
+					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(255, 0, 0)));
 					EndPaint(hWnd, &ps);
 				}
-				if (x < 180 && y > 120)//Ëåâûé íèæíèé óãîë
+				if (x < 180 && y > 120)
 				{
 					BeginPaint(hWnd, &ps);
 
-					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(0, 255, 26)));//çåë¸íûé
+					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(0, 255, 26)));
 					EndPaint(hWnd, &ps);
 				}
 			}
@@ -116,9 +116,9 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR szCmdLine, int nCmdS
 		return DefWindowProc(hWnd, uMsg, wParam, lParam);
 	};
 
-	wc.lpszClassName = "MyAppClass";//Èìÿ êëàññà
-	wc.lpszMenuName = nullptr;//èäåíòèôèêàòîð ìåíþ
-	wc.style = CS_VREDRAW | CS_HREDRAW;//Ñòèëü Îêíà
+	wc.lpszClassName = "MyAppClass";
+	wc.lpszMenuName = nullptr;
+	wc.style = CS_VREDRAW | CS_HREDRAW;
 
 	if (!RegisterClassEx(&wc))
 		return EXIT_FAILURE;

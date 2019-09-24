@@ -5,22 +5,22 @@
 int x;
 int	y;
 
-int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR szCmdLine, int nCmdShow)//точка входа
+int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR szCmdLine, int nCmdShow)//ГІГ®Г·ГЄГ  ГўГµГ®Г¤Г 
 {
 	MSG msg{};
-	HWND hwnd{}; //Инфромация о окне
+	HWND hwnd{}; //Г€Г­ГґГ°Г®Г¬Г Г¶ГЁГї Г® Г®ГЄГ­ГҐ
 	WNDCLASSEX wc{ sizeof(WNDCLASSEX) };
-	wc.cbClsExtra = 0; //Дополнительное выделение памяти
+	wc.cbClsExtra = 0; //Г„Г®ГЇГ®Г«Г­ГЁГІГҐГ«ГјГ­Г®ГҐ ГўГ»Г¤ГҐГ«ГҐГ­ГЁГҐ ГЇГ Г¬ГїГІГЁ
 	wc.cbWndExtra = 0;
 	srand(time(NULL));
 	HBRUSH hBrush = CreateSolidBrush(RGB(0, 0, 255));
-	wc.hbrBackground = hBrush;//Окрас окна
-	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);//Курсор
-	wc.hIcon = LoadIcon(nullptr, IDI_APPLICATION);//Иконка
-	wc.hIconSm = LoadIcon(nullptr, IDI_APPLICATION);//Иконка в заголовке окна
+	wc.hbrBackground = hBrush;//ГЋГЄГ°Г Г± Г®ГЄГ­Г 
+	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);//ГЉГіГ°Г±Г®Г°
+	wc.hIcon = LoadIcon(nullptr, IDI_APPLICATION);//Г€ГЄГ®Г­ГЄГ 
+	wc.hIconSm = LoadIcon(nullptr, IDI_APPLICATION);//Г€ГЄГ®Г­ГЄГ  Гў Г§Г ГЈГ®Г«Г®ГўГЄГҐ Г®ГЄГ­Г 
 	wc.hInstance = hInstance;
 
-	wc.lpfnWndProc = [](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)->LRESULT//обработка сообщений
+	wc.lpfnWndProc = [](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)->LRESULT//Г®ГЎГ°Г ГЎГ®ГІГЄГ  Г±Г®Г®ГЎГ№ГҐГ­ГЁГ©
 	{
 		switch (uMsg)
 		{
@@ -38,7 +38,7 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR szCmdLine, int nCmdS
 				RegisterHotKey(hWnd, HOTKEX, MOD_CONTROL, VK_F12);
 			}
 			return 0;
-			case WM_DESTROY://сообщение в случае выхода
+			case WM_DESTROY://Г±Г®Г®ГЎГ№ГҐГ­ГЁГҐ Гў Г±Г«ГіГ·Г ГҐ ГўГ»ГµГ®Г¤Г 
 			{
 				PostQuitMessage(EXIT_SUCCESS);
 			}
@@ -59,32 +59,32 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR szCmdLine, int nCmdS
 					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(rand() % 255, rand() % 255, rand() % 255)));
 					EndPaint(hWnd, &ps);
 				}
-				if (x > 180 && y > 120)//Правый нижний угол
+				if (x > 180 && y > 120)//ГЏГ°Г ГўГ»Г© Г­ГЁГ¦Г­ГЁГ© ГіГЈГ®Г«
 				{
 					BeginPaint(hWnd, &ps);
 
-					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(0, 0, 255)));//синий
+					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(0, 0, 255)));//Г±ГЁГ­ГЁГ©
 					EndPaint(hWnd, &ps);
 				}
-				if (x > 180 && y < 120)//Правый верхний угол
+				if (x > 180 && y < 120)//ГЏГ°Г ГўГ»Г© ГўГҐГ°ГµГ­ГЁГ© ГіГЈГ®Г«
 				{
 					BeginPaint(hWnd, &ps);
 
-					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(255, 247, 13)));//жёлтый
+					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(255, 247, 13)));//Г¦ВёГ«ГІГ»Г©
 					EndPaint(hWnd, &ps);
 				}
-				if ( x>0 && x < 180 && y < 120 && y >0)//Левый верхний угол
+				if ( x>0 && x < 180 && y < 120 && y >0)//Г‹ГҐГўГ»Г© ГўГҐГ°ГµГ­ГЁГ© ГіГЈГ®Г«
 				{
 					BeginPaint(hWnd, &ps);
 
-					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(255, 0, 0)));//красный
+					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(255, 0, 0)));//ГЄГ°Г Г±Г­Г»Г©
 					EndPaint(hWnd, &ps);
 				}
-				if (x < 180 && y > 120)//Левый нижний угол
+				if (x < 180 && y > 120)//Г‹ГҐГўГ»Г© Г­ГЁГ¦Г­ГЁГ© ГіГЈГ®Г«
 				{
 					BeginPaint(hWnd, &ps);
 
-					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(0, 255, 26)));//зелёный
+					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(0, 255, 26)));//Г§ГҐГ«ВёГ­Г»Г©
 					EndPaint(hWnd, &ps);
 				}
 			}
@@ -101,7 +101,7 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR szCmdLine, int nCmdS
 			break;
 			case WM_KEYDOWN:
 			{
-				if (LOWORD(wParam) == 51 && HIWORD(lParam) == 4)  // Ctrl+3(левый контрол) Необходимо переделать на Ctrl+ Q
+				if (LOWORD(wParam) == 51 && HIWORD(lParam) == 4)  // Ctrl+3(Г«ГҐГўГ»Г© ГЄГ®Г­ГІГ°Г®Г«) ГЌГҐГ®ГЎГµГ®Г¤ГЁГ¬Г® ГЇГҐГ°ГҐГ¤ГҐГ«Г ГІГј Г­Г  Ctrl+ Q
 					ExitProcess(1);
 				/*if ();
 					STARTUPINFO sInfo;
@@ -116,14 +116,14 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR szCmdLine, int nCmdS
 		return DefWindowProc(hWnd, uMsg, wParam, lParam);
 	};
 
-	wc.lpszClassName = "MyAppClass";//Имя класса
-	wc.lpszMenuName = nullptr;//идентификатор меню
-	wc.style = CS_VREDRAW | CS_HREDRAW;//Стиль Окна
+	wc.lpszClassName = "MyAppClass";//Г€Г¬Гї ГЄГ«Г Г±Г±Г 
+	wc.lpszMenuName = nullptr;//ГЁГ¤ГҐГ­ГІГЁГґГЁГЄГ ГІГ®Г° Г¬ГҐГ­Гѕ
+	wc.style = CS_VREDRAW | CS_HREDRAW;//Г‘ГІГЁГ«Гј ГЋГЄГ­Г 
 
 	if (!RegisterClassEx(&wc))
 		return EXIT_FAILURE;
 	
-	hwnd = CreateWindow(wc.lpszClassName, "Селедков Виталий БАС-2018", WS_OVERLAPPEDWINDOW, 0, 0, 320, 240, nullptr, nullptr, wc.hInstance, nullptr);
+	hwnd = CreateWindow(wc.lpszClassName, "Г‘ГҐГ«ГҐГ¤ГЄГ®Гў Г‚ГЁГІГ Г«ГЁГ© ГЃГЂГ‘-2018", WS_OVERLAPPEDWINDOW, 0, 0, 320, 240, nullptr, nullptr, wc.hInstance, nullptr);
 
 	if (hwnd == INVALID_HANDLE_VALUE)
 		return EXIT_FAILURE;

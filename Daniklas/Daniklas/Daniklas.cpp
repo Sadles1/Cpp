@@ -20,7 +20,8 @@ int main()
 	cout.setf(ios::left);
 	bool program = 1;
 	int choice;
-	struct person employee[3];
+	int N=3;
+	person *employee = new person[N];
 	int i = 0, n = 0;
 	ifstream F;
 	ofstream FileExit;

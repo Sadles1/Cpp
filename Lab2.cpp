@@ -1,9 +1,10 @@
 #include <Windows.h>
 #include <ctime>
-#include <windowsx.h>
-#define HOTKEX 1
-int x;
-int	y;
+#include <tchar.h>
+#include <string.h>
+#include <stdlib.h>
+#include <iostream>
+
 
 int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR szCmdLine, int nCmdShow)
 {
@@ -26,92 +27,61 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR szCmdLine, int nCmdS
 		{
 			case WM_LBUTTONDOWN:
 			{
-				if (hWnd)
+				int x = LOWORD(lParam);
+				int y = HIWORD(lParam);
+				RECT rect;
+				GetWindowRect(hWnd, &rect);
+				LONG Width = rect.right - rect.left;//Ширина окна
+				LONG Height = rect.bottom - rect.top;//Высота окна
+
+
+				if (x > Width / 2 && y > Height / 2)//Правый нижний угол
 				{
-					x = LOWORD(lParam);
-					y = HIWORD(lParam);
+					InvalidateRect(hWnd, NULL, TRUE);
+					SetClassLongPtr(hWnd, GCL_HBRBACKGROUND, (LONG)CreateSolidBrush(RGB(0, 0, 255)));//синий
+				}
+				if (x > Width / 2 && y < Height / 2)//Левый верхний угол
+				{
+					InvalidateRect(hWnd, NULL, TRUE);
+					SetClassLongPtr(hWnd, GCL_HBRBACKGROUND, (LONG)CreateSolidBrush(RGB(255, 255, 0)));//жёлтый
+				}
+				if (x < Width / 2 && y < Height / 2)//Правый верхний угол
+				{
+					InvalidateRect(hWnd, NULL, TRUE);
+					SetClassLongPtr(hWnd, GCL_HBRBACKGROUND, (LONG)CreateSolidBrush(RGB(255, 0, 0)));//Красный
+				}
+				if (x < Width / 2 && y > Height / 2)//Левый нижний угол
+				{
+					InvalidateRect(hWnd, NULL, TRUE);
+					SetClassLongPtr(hWnd, GCL_HBRBACKGROUND, (LONG)CreateSolidBrush(RGB(0, 255, 0)));//зелённый
 				}
 			}
 			break;
-			case WM_CREATE:
-			{
-				RegisterHotKey(hWnd, HOTKEX, MOD_CONTROL, VK_F12);
-			}
-			return 0;
 			case WM_DESTROY:
 			{
 				PostQuitMessage(EXIT_SUCCESS);
 			}
 			return 0;
-			case WM_KEYUP:
+			case WM_KEYDOWN:
 			{
-				if (wParam == 27)
+				if ((wParam == 'Q' && GetAsyncKeyState(VK_CONTROL)) || (wParam == 27))//Выключение программы по нажатию esc или ctrl+q
+				{
 					ExitProcess(1);
-			}
-			case WM_PAINT:
-			{
-				PAINTSTRUCT ps;
-				if (wParam == 13)
-				{
-					
-					BeginPaint(hWnd, &ps);
-
-					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(rand() % 255, rand() % 255, rand() % 255)));
-					EndPaint(hWnd, &ps);
 				}
-				if (x > 180 && y > 120)
+				if (LOWORD(wParam) == 'C' && GetAsyncKeyState(VK_SHIFT))//Запуск блокнота по нажатию shift
 				{
-					BeginPaint(hWnd, &ps);
-
-					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(0, 0, 255)));
-					EndPaint(hWnd, &ps);
+					STARTUPINFO sInfo;
+					ZeroMemory(&sInfo, sizeof(STARTUPINFO));
+					PROCESS_INFORMATION pInfo;
+					CreateProcess("C:\\Windows\\Notepad.exe", NULL, NULL, NULL, FALSE, NULL, NULL, NULL, &sInfo, &pInfo);
 				}
-				if (x > 180 && y < 120)
+				if (wParam == 13)//Изменение цвета по нажатию enter
 				{
-					BeginPaint(hWnd, &ps);
-
-					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(255, 247, 13)));
-					EndPaint(hWnd, &ps);
-				}
-				if ( x>0 && x < 180 && y < 120 && y >0)
-				{
-					BeginPaint(hWnd, &ps);
-
-					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(255, 0, 0)));
-					EndPaint(hWnd, &ps);
-				}
-				if (x < 180 && y > 120)
-				{
-					BeginPaint(hWnd, &ps);
-
-					FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(0, 255, 26)));
-					EndPaint(hWnd, &ps);
+					InvalidateRect(hWnd, NULL, TRUE);
+					SetClassLongPtr(hWnd, GCL_HBRBACKGROUND, (LONG)CreateSolidBrush(RGB(rand() % 255, rand() % 255, rand() % 255)));
 				}
 			}
 			return 0;
-			/*
-			case WM_HOTKEY:
-			{
-				if (HOTKEX == (int)wParam)
-				{
-					MessageBoxA(hWnd, "Hi", "Info", MB_OK);
-
-				}
-			}
-			break;
-			case WM_KEYDOWN:
-			{
-				if (LOWORD(wParam) == 51 && HIWORD(lParam) == 4)  // Ctrl+3(ëåâûé êîíòðîë) Íåîáõîäèìî ïåðåäåëàòü íà Ctrl+ Q
-					ExitProcess(1);
-				/*if ();
-					STARTUPINFO sInfo;
-					ZeroMemory(&sInfo, sizeof(STARTUPINFO));
-
-					PROCESS_INFORMATION pInfo;
-					CreateProcess("C:\\Windows\\Notepad.exe", NULL, NULL, NULL, FALSE, NULL, NULL, NULL, &sInfo, &pInfo);
-				
-			}
-			*/
 		}
 		return DefWindowProc(hWnd, uMsg, wParam, lParam);
 	};
@@ -122,8 +92,8 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR szCmdLine, int nCmdS
 
 	if (!RegisterClassEx(&wc))
 		return EXIT_FAILURE;
-	
-	hwnd = CreateWindow(wc.lpszClassName, "Ñåëåäêîâ Âèòàëèé ÁÀÑ-2018", WS_OVERLAPPEDWINDOW, 0, 0, 320, 240, nullptr, nullptr, wc.hInstance, nullptr);
+
+	hwnd = CreateWindow(wc.lpszClassName, "Селедков Виталий БАС-2018", WS_OVERLAPPEDWINDOW, 0, 0, 320, 240, nullptr, nullptr, wc.hInstance, nullptr);
 
 	if (hwnd == INVALID_HANDLE_VALUE)
 		return EXIT_FAILURE;
@@ -136,6 +106,6 @@ int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR szCmdLine, int nCmdS
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
-	
+
 	return static_cast<int>(msg.wParam);
 }

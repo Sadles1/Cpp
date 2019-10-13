@@ -1,0 +1,105 @@
+#include <iostream>
+#include <vector>
+#include "locale.h"
+
+using namespace std;
+
+class TurFirma
+{
+private:
+	string Name;
+	string Way;
+	int Number;
+	vector <TurFirma> vec;
+public:
+	TurFirma() //Конструктор
+	{
+		Name = '0'; //начальные значения переменным
+		Way = '0';
+		Number = 0;
+		vec.resize(4);
+		cout << "Name = " << Name << endl;
+		cout << "Way = " << Way << endl;
+		cout << "Number = " << Number << endl ;
+	}
+	TurFirma(string A,string B,int C) //Конструктор с параметрами
+	{
+		Name = A; 
+		Way = B;
+		Number = C;
+		cout << "Name = " << Name << endl;
+		cout << "Way = " << Way << endl;
+		cout << "Number = " << Number << endl;
+	}
+	void setName()
+	{
+		int i = 0;
+		vec.insert(vec.at(i), Name);
+	}
+	void setWay()
+	{
+		cout << "Введите маршрут: ";
+		cin >> Way;
+	}
+	void setNumber()
+	{
+		cout << "Введите кол-во оставшихся путёвок: ";
+		cin >> Number;
+	}
+	void getInf()
+	{
+		cout << "Название: " << Name << "\n" << "Маршрут: " << Way << "\n" <<  "Кол-во оставшихся путёвок: " << Number << "\n";
+	}
+	vector <TurFirma>& Get_vec()
+	{
+		return vec;
+	}
+	~TurFirma()//Деструктор
+	{
+		
+	}
+
+};
+
+int main()
+{
+	int a=0;
+	setlocale(LC_ALL, "rus"); 
+
+	TurFirma turfirma;
+	vector <TurFirma> turFirmaA;
+
+	while (1)
+	{
+	tryAgain: //Для goto
+		cout << ">>> ";
+		cin >> a;
+		int i = 1;
+
+		switch (a)
+		{
+			case 1:
+			{
+				turfirma.Get_vec()[0].setName();
+				break;
+			}
+			case 2:
+			{
+				break;
+			}
+			case 3:
+			{
+				break;
+			}
+			default:
+			{
+				cout << "Ошибка ввода!" << endl;
+				goto tryAgain;
+				break;
+			}
+		}
+	}
+	//employer.setName();
+	//employer.getInf();
+
+}

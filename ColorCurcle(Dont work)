@@ -6,14 +6,23 @@
 #include "resource.h"
 #pragma comment(lib, "gdiplus.lib")
 
-HWND hCombo1;
-HANDLE event;
+HWND hCombo1,hCombo2,hCombo3,hEdit,hEditR,hEditB,hEditG;
+bool OffThread;
 
-int NewNumberOfThreads = 1;
-int NumberOfThreads = 0;
+CHAR IDLE[] = { "IDLE" };
+CHAR LOWEST[] = { "LOWEST" };
+CHAR BELOW_NORMAL[] = { "BELOW NORMAL" };
+CHAR NORMAL[] = { "NORMAL" };
+CHAR ABOVE_NORMAL[] = { "ABOVE NORMAL" };
+CHAR HIGHEST[] = { "HIGHEST" };
+CHAR TIME_CRITICAL[] = { "TIME CRITICAL" };
+
+int NumberOfThreads = 1;
 int CurrentSelectThread;
 
 BOOL CALLBACK DlgProc(HWND, UINT, WPARAM, LPARAM);
+
+std::vector <HANDLE> Threads(1);
 
 struct Thread
 {
@@ -26,10 +35,11 @@ public:
 	};
 	RGB rgb;
 	int Radius=rand()%50+10;
+	int Priority = 0;
 	HDC hdc;
 };
 
-std::vector <Thread> ThreadsInfo;
+std::vector <Thread> ThreadsInfo(1);
 
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -44,8 +54,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, 
 void Draw(HDC hdc,int R,int G,int B,int radius)
 {
 	POINT ptCenter;
-	ptCenter.x = rand() % 670;
-	ptCenter.y = rand() % 300;
+	ptCenter.x = rand() % (650-radius)+radius;
+	ptCenter.y = rand() % (350-radius)+radius;
 	Gdiplus::Graphics gf(hdc);
 	Gdiplus::Pen pen(Gdiplus::Color(255,R,G,B));
 	Gdiplus::SolidBrush brush(Gdiplus::Color(255, R,G,B));
@@ -63,7 +73,7 @@ DWORD WINAPI PaintCurcle(CONST LPARAM Info)
 	int R = CurrentThreadInfo->rgb.R;
 	int G = CurrentThreadInfo->rgb.G;
 	int B = CurrentThreadInfo->rgb.B;
-	for (int i = 0; true; i++)
+	while(!OffThread)
 	{
 		Sleep(100);
 		Draw(hdc,R,G,B,radius);
@@ -74,64 +84,347 @@ DWORD WINAPI PaintCurcle(CONST LPARAM Info)
 
 BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	std::vector <HANDLE> Threads;
+	srand(time(NULL));
 	HDC hdc;
 	PAINTSTRUCT ps;
 	switch (uMsg)
 	{
 		case WM_INITDIALOG:
 		{
-			hCombo1 = GetDlgItem(hwnd, IDC_COMBO1);
+			hCombo1 = GetDlgItem(hwnd, IDCOMBO1);
+			hCombo2 = GetDlgItem(hwnd, IDCOMBO2);
+			hCombo3 = GetDlgItem(hwnd, IDCOMBO3);
+
+			SendMessage(hCombo2, CB_ADDSTRING, 0, (LPARAM)IDLE);
+			SendMessage(hCombo2, CB_ADDSTRING, 0, (LPARAM)LOWEST);
+			SendMessage(hCombo2, CB_ADDSTRING, 0, (LPARAM)BELOW_NORMAL);
+			SendMessage(hCombo2, CB_ADDSTRING, 0, (LPARAM)NORMAL);
+			SendMessage(hCombo2, CB_ADDSTRING, 0, (LPARAM)ABOVE_NORMAL);
+			SendMessage(hCombo2, CB_ADDSTRING, 0, (LPARAM)HIGHEST);
+			SendMessage(hCombo2, CB_ADDSTRING, 0, (LPARAM)TIME_CRITICAL);
+
+			SendMessage(hCombo3, CB_ADDSTRING, 0, (LPARAM)IDLE);
+			SendMessage(hCombo3, CB_ADDSTRING, 0, (LPARAM)LOWEST);
+			SendMessage(hCombo3, CB_ADDSTRING, 0, (LPARAM)BELOW_NORMAL);
+			SendMessage(hCombo3, CB_ADDSTRING, 0, (LPARAM)NORMAL);
+			SendMessage(hCombo3, CB_ADDSTRING, 0, (LPARAM)ABOVE_NORMAL);
+			SendMessage(hCombo3, CB_ADDSTRING, 0, (LPARAM)HIGHEST);
+			SendMessage(hCombo3, CB_ADDSTRING, 0, (LPARAM)TIME_CRITICAL);
+
+
+			hEdit = GetDlgItem(hwnd, IDEDITRADIUS);
+			hEditR = GetDlgItem(hwnd, IDEDITR);
+			hEditG = GetDlgItem(hwnd, IDEDITG);
+			hEditB = GetDlgItem(hwnd, IDEDITB);
 			break;
 		}
 		case WM_COMMAND:
 		{
 			switch (LOWORD(wParam))
 			{
-				case IDC_COMBO1:
+				case IDCOMBO1:
 				{
 					if (HIWORD(wParam) == CBN_SELENDOK)
 					{
-						CHAR str_1[255];
+
+						TCHAR text[255];
 						int i = SendMessage(hCombo1, CB_GETCURSEL, 0, 0);
-						SendMessage(hCombo1, CB_GETLBTEXT, i, (LPARAM)str_1);
-						
+
+						SendMessage(hCombo1, CB_GETLBTEXT, i, (LPARAM)text);
+						CurrentSelectThread = i;
+
+						snprintf(text, sizeof text, "%i", ThreadsInfo.at(CurrentSelectThread+1).Radius);
+						SetWindowText(hEdit, text);
+
+						snprintf(text, sizeof text, "%i", ThreadsInfo.at(CurrentSelectThread+1).rgb.R);
+						SetWindowText(hEditR, text);
+
+						snprintf(text, sizeof text, "%i", ThreadsInfo.at(CurrentSelectThread+1).rgb.G);
+						SetWindowText(hEditG, text);
+
+						snprintf(text, sizeof text, "%i", ThreadsInfo.at(CurrentSelectThread+1).rgb.B);
+						SetWindowText(hEditB, text);
+
+						switch (GetThreadPriority(Threads.at(CurrentSelectThread)))
+						{
+							case -15:
+							{
+								SetWindowText(hCombo2, "IDLE");
+								break;
+							}
+							case -2:
+							{
+								SetWindowText(hCombo2, "LOWEST");
+								break;
+							}
+							case -1:
+							{
+								SetWindowText(hCombo2, "BELOW NORMAL");
+								break;
+							}
+							case 0:
+							{
+								SetWindowText(hCombo2, "NORMAL");
+								break;
+							}
+							case 1:
+							{
+								SetWindowText(hCombo2, "ABOVE NORMAL");
+								break;
+							}
+							case 2:
+							{
+								SetWindowText(hCombo2, "HIGHEST");
+								break;
+							}
+							case 15:
+							{
+								SetWindowText(hCombo2, "TIME CRITICAL");
+								break;
+							}
+						}
+					}
+					break;
+				}
+				case IDCOMBO2:
+				{
+					if (HIWORD(wParam) == CBN_SELENDOK)
+					{
+						OffThread = 1;
+						CHAR text[255];
+						int i = SendMessage(hCombo2, CB_GETCURSEL, 0, 0);
+						switch (i)
+						{
+							case 0:
+							{
+								ThreadsInfo.at(CurrentSelectThread).Priority = 1;
+								break;
+							}
+							case 1:
+							{
+								ThreadsInfo.at(CurrentSelectThread).Priority = -1;
+								break;
+
+							}
+							case 2:
+							{
+								ThreadsInfo.at(CurrentSelectThread).Priority = 2;
+								break;
+
+							}
+							case 3:
+							{
+								ThreadsInfo.at(CurrentSelectThread).Priority = -15;
+								break;
+
+							}
+							case 4:
+							{
+								ThreadsInfo.at(CurrentSelectThread).Priority = -2;
+								break;
+
+							}
+							case 5:
+							{
+								ThreadsInfo.at(CurrentSelectThread).Priority = 0;
+								break;
+
+							}
+							case 6:
+							{
+								ThreadsInfo.at(CurrentSelectThread).Priority = 15;
+								break;
+
+							}
+						}
+						Sleep(1000);
+						OffThread = 0;
+						InvalidateRect(hwnd, NULL, TRUE);
+					}
+					break;
+				}
+				case IDCOMBO3:
+				{
+					if (HIWORD(wParam) == CBN_SELENDOK)
+					{
+						OffThread = 1;
+						CHAR text[255];
+						int i = SendMessage(hCombo3, CB_GETCURSEL, 0, 0);
+						switch (i)
+						{
+						case 0:
+						{
+							ThreadsInfo.at(0).Priority = 1;
+							break;
+						}
+						case 1:
+						{
+							ThreadsInfo.at(0).Priority = -1;
+							break;
+
+						}
+						case 2:
+						{
+							ThreadsInfo.at(0).Priority = 2;
+							break;
+
+						}
+						case 3:
+						{
+							ThreadsInfo.at(0).Priority = -15;
+							break;
+
+						}
+						case 4:
+						{
+							ThreadsInfo.at(0).Priority = -2;
+							break;
+
+						}
+						case 5:
+						{
+							ThreadsInfo.at(0).Priority = 0;
+							break;
+
+						}
+						case 6:
+						{
+							ThreadsInfo.at(0).Priority = 15;
+							break;
+
+						}
+						}
+						Sleep(1000);
+						OffThread = 0;
+						InvalidateRect(hwnd, NULL, TRUE);
 					}
 					break;
 				}
 				case IDNEWTHREAD:
 				{
-					NewNumberOfThreads++;
+
 					NumberOfThreads++;
-					INT value = NumberOfThreads;
 					TCHAR text[1000];
-					snprintf(text, sizeof text, "%i", value);
+
+					snprintf(text, sizeof text, "%i", NumberOfThreads);
 
 					SendMessage(hCombo1, CB_ADDSTRING, 0, (LPARAM)((LPSTR)text));
+					
+					OffThread = 1;
+
+					Thread NewThreadsInfo;
+
+					ThreadsInfo.push_back(NewThreadsInfo);
+
+					ThreadsInfo.at(NumberOfThreads-1).Radius = rand() % 50+10;
+					ThreadsInfo.at(NumberOfThreads-1).rgb.R = rand() % 255;
+					ThreadsInfo.at(NumberOfThreads-1).rgb.G = rand() % 255;
+					ThreadsInfo.at(NumberOfThreads-1).rgb.B = rand() % 255;
+
+
 					InvalidateRect(hwnd, NULL, TRUE);
+
+					
+					Sleep(1000);
+					OffThread = 0;
 					break;
 				}	
 				case IDDELETETHREAD:
 				{
+
+					OffThread = 1;
+
+					SendMessage(hCombo1, CB_DELETESTRING, CurrentSelectThread - 1, NULL);
+
+					SetWindowText(hCombo1, "");
+					SetWindowText(hEdit, "");
+					SetWindowText(hEditR, "");
+					SetWindowText(hEditG, "");
+					SetWindowText(hEditB, "");
+
+					//Threads.erase(Threads.begin() + CurrentSelectThread);
+					//ThreadsInfo.erase(ThreadsInfo.begin() + CurrentSelectThread);
+
+
 					InvalidateRect(hwnd, NULL, TRUE);
+
+					Sleep(1000);
+					OffThread = 0;
 					break;
+
 				}
 			}
+			break;
+		}
+		case WM_GETTEXT:
+		{
+			TCHAR buf[255];
+			ThreadsInfo.at(CurrentSelectThread).Radius=GetWindowText(hEdit, buf, lstrlen(buf));
 			break;
 		}
 		case WM_PAINT:
 		{
 			srand(time(NULL));
 			hdc = BeginPaint(hwnd, &ps);
-			for (int i = 0; i < NewNumberOfThreads; i++)
+			for (int i = 0; i < ThreadsInfo.size(); i++)
 			{
+				Sleep(100);
 				Thread CurrentThreadInfo;
 				CurrentThreadInfo.hdc = hdc;
-				CurrentThreadInfo.Radius = rand() % 50+10;
-				ThreadsInfo.push_back(CurrentThreadInfo);
-				Threads.push_back(CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)PaintCurcle, (LPVOID)&CurrentThreadInfo, 0, NULL));
+				CurrentThreadInfo.Radius = ThreadsInfo.at(i).Radius;
+				CurrentThreadInfo.rgb.R = ThreadsInfo.at(i).rgb.R;
+				CurrentThreadInfo.rgb.G = ThreadsInfo.at(i).rgb.G;
+				CurrentThreadInfo.rgb.B = ThreadsInfo.at(i).rgb.B;
+				CurrentThreadInfo.Priority = ThreadsInfo.at(i).Priority;
+
+				if (i < Threads.size())
+					Threads.at(i) = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)PaintCurcle, (LPVOID)&CurrentThreadInfo, 0, NULL);
+				else
+					Threads.push_back(CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)PaintCurcle, (LPVOID)&CurrentThreadInfo, 0, NULL));
+
+				SetThreadPriority(Threads.at(i), CurrentThreadInfo.Priority);
 			}
-			NewNumberOfThreads = 0;
+
+			switch (GetThreadPriority(Threads.at(0)))
+			{
+			case -15:
+			{
+				SetWindowText(hCombo3, "IDLE");
+				break;
+			}
+			case -2:
+			{
+				SetWindowText(hCombo3, "LOWEST");
+				break;
+			}
+			case -1:
+			{
+				SetWindowText(hCombo3, "BELOW NORMAL");
+				break;
+			}
+			case 0:
+			{
+				SetWindowText(hCombo3, "NORMAL");
+				break;
+			}
+			case 1:
+			{
+				SetWindowText(hCombo3, "ABOVE NORMAL");
+				break;
+			}
+			case 2:
+			{
+				SetWindowText(hCombo3, "HIGHEST");
+				break;
+			}
+			case 15:
+			{
+				SetWindowText(hCombo3, "TIME CRITICAL");
+				break;
+			}
+
+			}
+
 			return 0;
 		}
 		case WM_CLOSE:

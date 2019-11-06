@@ -7,24 +7,29 @@
 #pragma comment(lib, "gdiplus.lib")
 
 HWND hCombo1;
-CHAR string_1[] = { "1" };
-int NumberOfThreads = 1;
-BOOL CALLBACK DlgProc(HWND, UINT, WPARAM, LPARAM);
+HANDLE event;
 
-struct RGB
-{
-	int R = rand() % 255;
-	int G = rand() % 255;
-	int B = rand() % 255;
-};
+int NewNumberOfThreads = 1;
+int NumberOfThreads = 0;
+int CurrentSelectThread;
+
+BOOL CALLBACK DlgProc(HWND, UINT, WPARAM, LPARAM);
 
 struct Thread
 {
+public:
+	struct RGB
+	{
+		int R = rand() % 255;
+		int G = rand() % 255;
+		int B = rand() % 255;
+	};
 	RGB rgb;
-	int Radius;
+	int Radius=rand()%50+10;
+	HDC hdc;
 };
 
-std::vector <RGB> color(1);
+std::vector <Thread> ThreadsInfo;
 
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -36,12 +41,11 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, 
 	return 0;
 }
 
-void Draw(HDC hdc,int R,int G,int B)
+void Draw(HDC hdc,int R,int G,int B,int radius)
 {
 	POINT ptCenter;
-	int radius = 30;
-	ptCenter.x = rand() % 600;
-	ptCenter.y = rand() % 400;
+	ptCenter.x = rand() % 670;
+	ptCenter.y = rand() % 300;
 	Gdiplus::Graphics gf(hdc);
 	Gdiplus::Pen pen(Gdiplus::Color(255,R,G,B));
 	Gdiplus::SolidBrush brush(Gdiplus::Color(255, R,G,B));
@@ -51,17 +55,18 @@ void Draw(HDC hdc,int R,int G,int B)
 
 
 
-DWORD WINAPI PaintCurcle(const LPVOID lpParam)
+DWORD WINAPI PaintCurcle(CONST LPARAM Info)
 {
-	srand(time(NULL));
-	CONST HDC hdc = (CONST HDC)lpParam;
-	int R = rand() % 255;
-	int G = rand() % 255;
-	int B = rand() % 255;
+	CONST Thread* CurrentThreadInfo = (Thread*)Info;
+	CONST HDC hdc = CurrentThreadInfo->hdc;
+	int radius = CurrentThreadInfo->Radius;
+	int R = CurrentThreadInfo->rgb.R;
+	int G = CurrentThreadInfo->rgb.G;
+	int B = CurrentThreadInfo->rgb.B;
 	for (int i = 0; true; i++)
 	{
 		Sleep(100);
-		Draw(hdc,R,G,B);
+		Draw(hdc,R,G,B,radius);
 	}
 	return 0;
 }
@@ -70,7 +75,6 @@ DWORD WINAPI PaintCurcle(const LPVOID lpParam)
 BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	std::vector <HANDLE> Threads;
-	//DWORD* thrID = new DWORD[NumberOfThreads];
 	HDC hdc;
 	PAINTSTRUCT ps;
 	switch (uMsg)
@@ -78,7 +82,6 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case WM_INITDIALOG:
 		{
 			hCombo1 = GetDlgItem(hwnd, IDC_COMBO1);
-			SendMessage(hCombo1, CB_ADDSTRING, 0, (LPARAM)string_1);
 			break;
 		}
 		case WM_COMMAND:
@@ -89,15 +92,22 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				{
 					if (HIWORD(wParam) == CBN_SELENDOK)
 					{
-						char str_1[255];
+						CHAR str_1[255];
 						int i = SendMessage(hCombo1, CB_GETCURSEL, 0, 0);
 						SendMessage(hCombo1, CB_GETLBTEXT, i, (LPARAM)str_1);
+						
 					}
 					break;
 				}
 				case IDNEWTHREAD:
 				{
+					NewNumberOfThreads++;
 					NumberOfThreads++;
+					INT value = NumberOfThreads;
+					TCHAR text[1000];
+					snprintf(text, sizeof text, "%i", value);
+
+					SendMessage(hCombo1, CB_ADDSTRING, 0, (LPARAM)((LPSTR)text));
 					InvalidateRect(hwnd, NULL, TRUE);
 					break;
 				}	
@@ -111,11 +121,17 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		case WM_PAINT:
 		{
+			srand(time(NULL));
 			hdc = BeginPaint(hwnd, &ps);
-			for (int i = 0; i < NumberOfThreads; i++)
+			for (int i = 0; i < NewNumberOfThreads; i++)
 			{
-				Threads.push_back(CreateThread(NULL, 0, &PaintCurcle, hdc, 0, NULL));
+				Thread CurrentThreadInfo;
+				CurrentThreadInfo.hdc = hdc;
+				CurrentThreadInfo.Radius = rand() % 50+10;
+				ThreadsInfo.push_back(CurrentThreadInfo);
+				Threads.push_back(CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)PaintCurcle, (LPVOID)&CurrentThreadInfo, 0, NULL));
 			}
+			NewNumberOfThreads = 0;
 			return 0;
 		}
 		case WM_CLOSE:

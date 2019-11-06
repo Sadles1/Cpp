@@ -1,111 +1,128 @@
-#include <Windows.h>
+#include <windows.h>
+#include <gdiplus.h>
+#include <math.h>
 #include <ctime>
-#include <tchar.h>
-#include <string.h>
-#include <stdlib.h>
-#include <iostream>
+#include <vector>
+#include "resource.h"
+#pragma comment(lib, "gdiplus.lib")
 
+HWND hCombo1;
+CHAR string_1[] = { "1" };
+int NumberOfThreads = 1;
+BOOL CALLBACK DlgProc(HWND, UINT, WPARAM, LPARAM);
 
-int CALLBACK wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR szCmdLine, int nCmdShow)
+struct RGB
 {
-	MSG msg{};
-	HWND hwnd{};
-	WNDCLASSEX wc{ sizeof(WNDCLASSEX) };
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
+	int R = rand() % 255;
+	int G = rand() % 255;
+	int B = rand() % 255;
+};
+
+struct Thread
+{
+	RGB rgb;
+	int Radius;
+};
+
+std::vector <RGB> color(1);
+
+int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nCmdShow)
+{
+	Gdiplus::GdiplusStartupInput gdiplusstartupinput;
+	ULONG_PTR gdiplusToken;
+	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusstartupinput, nullptr);
+	DialogBoxParam(hInstance, MAKEINTRESOURCE(IDD_DIALOG1),0,(DlgProc),0);
+	Gdiplus::GdiplusShutdown(gdiplusToken);
+	return 0;
+}
+
+void Draw(HDC hdc,int R,int G,int B)
+{
+	POINT ptCenter;
+	int radius = 30;
+	ptCenter.x = rand() % 600;
+	ptCenter.y = rand() % 400;
+	Gdiplus::Graphics gf(hdc);
+	Gdiplus::Pen pen(Gdiplus::Color(255,R,G,B));
+	Gdiplus::SolidBrush brush(Gdiplus::Color(255, R,G,B));
+	Sleep(100);
+	gf.FillEllipse(&brush, ptCenter.x, ptCenter.y, radius, radius);
+}
+
+
+
+DWORD WINAPI PaintCurcle(const LPVOID lpParam)
+{
 	srand(time(NULL));
-	HBRUSH hBrush = CreateSolidBrush(RGB(0, 0, 255));
-	wc.hbrBackground = hBrush;
-	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	wc.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
-	wc.hIconSm = LoadIcon(nullptr, IDI_APPLICATION);
-	wc.hInstance = hInstance;
-
-	wc.lpfnWndProc = [](HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)->LRESULT
+	CONST HDC hdc = (CONST HDC)lpParam;
+	int R = rand() % 255;
+	int G = rand() % 255;
+	int B = rand() % 255;
+	for (int i = 0; true; i++)
 	{
-		switch (uMsg)
+		Sleep(100);
+		Draw(hdc,R,G,B);
+	}
+	return 0;
+}
+
+
+BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	std::vector <HANDLE> Threads;
+	//DWORD* thrID = new DWORD[NumberOfThreads];
+	HDC hdc;
+	PAINTSTRUCT ps;
+	switch (uMsg)
+	{
+		case WM_INITDIALOG:
 		{
-			case WM_LBUTTONDOWN:
+			hCombo1 = GetDlgItem(hwnd, IDC_COMBO1);
+			SendMessage(hCombo1, CB_ADDSTRING, 0, (LPARAM)string_1);
+			break;
+		}
+		case WM_COMMAND:
+		{
+			switch (LOWORD(wParam))
 			{
-				int x = LOWORD(lParam);
-				int y = HIWORD(lParam);
-				RECT rect;
-				GetWindowRect(hWnd, &rect);
-				LONG Width = rect.right - rect.left;//Ширина окна
-				LONG Height = rect.bottom - rect.top;//Высота окна
-
-
-				if (x > Width / 2 && y > Height / 2)//Правый нижний угол
+				case IDC_COMBO1:
 				{
-					InvalidateRect(hWnd, NULL, TRUE);
-					SetClassLongPtr(hWnd, GCL_HBRBACKGROUND, (LONG)CreateSolidBrush(RGB(0, 0, 255)));//синий
+					if (HIWORD(wParam) == CBN_SELENDOK)
+					{
+						char str_1[255];
+						int i = SendMessage(hCombo1, CB_GETCURSEL, 0, 0);
+						SendMessage(hCombo1, CB_GETLBTEXT, i, (LPARAM)str_1);
+					}
+					break;
 				}
-				if (x > Width / 2 && y < Height / 2)//Левый верхний угол
+				case IDNEWTHREAD:
 				{
-					InvalidateRect(hWnd, NULL, TRUE);
-					SetClassLongPtr(hWnd, GCL_HBRBACKGROUND, (LONG)CreateSolidBrush(RGB(255, 255, 0)));//жёлтый
-				}
-				if (x < Width / 2 && y < Height / 2)//Правый верхний угол
+					NumberOfThreads++;
+					InvalidateRect(hwnd, NULL, TRUE);
+					break;
+				}	
+				case IDDELETETHREAD:
 				{
-					InvalidateRect(hWnd, NULL, TRUE);
-					SetClassLongPtr(hWnd, GCL_HBRBACKGROUND, (LONG)CreateSolidBrush(RGB(255, 0, 0)));//Красный
-				}
-				if (x < Width / 2 && y > Height / 2)//Левый нижний угол
-				{
-					InvalidateRect(hWnd, NULL, TRUE);
-					SetClassLongPtr(hWnd, GCL_HBRBACKGROUND, (LONG)CreateSolidBrush(RGB(0, 255, 0)));//зелённый
+					InvalidateRect(hwnd, NULL, TRUE);
+					break;
 				}
 			}
 			break;
-			case WM_DESTROY:
+		}
+		case WM_PAINT:
+		{
+			hdc = BeginPaint(hwnd, &ps);
+			for (int i = 0; i < NumberOfThreads; i++)
 			{
-				PostQuitMessage(EXIT_SUCCESS);
-			}
-			return 0;
-			case WM_KEYDOWN:
-			{
-				if ((wParam == 'Q' && GetAsyncKeyState(VK_CONTROL)) || (wParam == 27))//Выключение программы по нажатию esc или ctrl+q
-				{
-					ExitProcess(1);
-				}
-				if (LOWORD(wParam) == 'C' && GetAsyncKeyState(VK_SHIFT))//Запуск блокнота по нажатию shift
-				{
-					STARTUPINFO sInfo;
-					ZeroMemory(&sInfo, sizeof(STARTUPINFO));
-					PROCESS_INFORMATION pInfo;
-					CreateProcess("C:\\Windows\\Notepad.exe", NULL, NULL, NULL, FALSE, NULL, NULL, NULL, &sInfo, &pInfo);
-				}
-				if (wParam == 13)//Изменение цвета по нажатию enter
-				{
-					InvalidateRect(hWnd, NULL, TRUE);
-					SetClassLongPtr(hWnd, GCL_HBRBACKGROUND, (LONG)CreateSolidBrush(RGB(rand() % 255, rand() % 255, rand() % 255)));
-				}
+				Threads.push_back(CreateThread(NULL, 0, &PaintCurcle, hdc, 0, NULL));
 			}
 			return 0;
 		}
-		return DefWindowProc(hWnd, uMsg, wParam, lParam);
-	};
-
-	wc.lpszClassName = "MyAppClass";
-	wc.lpszMenuName = nullptr;
-	wc.style = CS_VREDRAW | CS_HREDRAW;
-
-	if (!RegisterClassEx(&wc))
-		return EXIT_FAILURE;
-
-	hwnd = CreateWindow(wc.lpszClassName, "Селедков Виталий БАС-2018", WS_OVERLAPPEDWINDOW, 0, 0, 320, 240, nullptr, nullptr, wc.hInstance, nullptr);
-
-	if (hwnd == INVALID_HANDLE_VALUE)
-		return EXIT_FAILURE;
-
-	ShowWindow(hwnd, nCmdShow);
-	UpdateWindow(hwnd);
-
-	while (GetMessage(&msg, nullptr, 0, 0))
-	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
+		case WM_CLOSE:
+		{
+			EndDialog(hwnd, 0);
+			return 0;
+		}
 	}
-
-	return static_cast<int>(msg.wParam);
+	return 0;
 }

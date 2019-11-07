@@ -7,7 +7,7 @@
 #include "resource.h"
 #pragma comment(lib, "gdiplus.lib")
 
-HWND hCombo1,hCombo2,hCombo3,hColor,hEdit,hEditR,hEditB,hEditG;
+HWND hCombo1, hCombo2, hCombo3, hEdit, hEditR, hEditB, hEditG;
 bool OffThread;
 
 CHAR IDLE[] = { "IDLE" };
@@ -19,7 +19,7 @@ CHAR HIGHEST[] = { "HIGHEST" };
 CHAR TIME_CRITICAL[] = { "TIME CRITICAL" };
 
 int NumberOfThreads = 1;
-int CurrentSelectThread;
+int CurrentSelectThread=1;
 
 BOOL CALLBACK DlgProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -39,9 +39,10 @@ public:
 	HDC hdc;
 };
 
-std::vector <Thread> ThreadsInfo(1);
-std::vector <HANDLE> Threads(1);
-
+std::vector <Thread> ThreadsInfo;
+std::vector <HANDLE> Threads;
+std::vector <int> LastDelete;
+HANDLE MainThread;
 static std::pair<bool, HWND> AddWindow(const std::string&& winClass, const std::string&& title, HWND hParentWnd, const WNDPROC callback)
 {
 	UnregisterClass(winClass.c_str(), GetModuleHandle(nullptr));
@@ -83,8 +84,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, 
 void Draw(HDC hdc,int R,int G,int B,int radius)
 {
 	POINT ptCenter;
-	ptCenter.x = rand() % (650-radius)+radius;
-	ptCenter.y = rand() % (350-radius)+radius;
+	ptCenter.x = rand() % (600-radius/2);
+	ptCenter.y = rand() % (320-radius/2);
 	Gdiplus::Graphics gf(hdc);
 	Gdiplus::Pen pen(Gdiplus::Color(255,R,G,B));
 	Gdiplus::SolidBrush brush(Gdiplus::Color(255, R,G,B));
@@ -138,6 +139,8 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			SendMessage(hCombo3, CB_ADDSTRING, 0, (LPARAM)HIGHEST);
 			SendMessage(hCombo3, CB_ADDSTRING, 0, (LPARAM)TIME_CRITICAL);
 
+			SetThreadPriority(MainThread, 0);
+
 			hEditR= GetDlgItem(hwnd, IDEDITR);
 			hEditG= GetDlgItem(hwnd, IDEDITG);
 			hEditB = GetDlgItem(hwnd, IDEDITB);
@@ -159,16 +162,16 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 						int i = SendMessage(hCombo1, CB_GETCURSEL, 0, 0);
 						CurrentSelectThread = i;
 
-						snprintf(text, sizeof text, "%i", ThreadsInfo.at(CurrentSelectThread+1).Radius);
+						snprintf(text, sizeof text, "%i", ThreadsInfo.at(CurrentSelectThread).Radius);
 						SetWindowText(hEdit, text);
 
-						snprintf(text, sizeof text, "%i", ThreadsInfo.at(CurrentSelectThread+1).rgb.R);
+						snprintf(text, sizeof text, "%i", ThreadsInfo.at(CurrentSelectThread).rgb.R);
 						SetWindowText(hEditR, text);
 
-						snprintf(text, sizeof text, "%i", ThreadsInfo.at(CurrentSelectThread+1).rgb.G);
+						snprintf(text, sizeof text, "%i", ThreadsInfo.at(CurrentSelectThread).rgb.G);
 						SetWindowText(hEditG, text);
 
-						snprintf(text, sizeof text, "%i", ThreadsInfo.at(CurrentSelectThread+1).rgb.B);
+						snprintf(text, sizeof text, "%i", ThreadsInfo.at(CurrentSelectThread).rgb.B);
 						SetWindowText(hEditB, text);
 
 						switch (GetThreadPriority(Threads.at(CurrentSelectThread)))
@@ -283,42 +286,42 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 						{
 						case 0:
 						{
-							ThreadsInfo.at(0).Priority = 1;
+							SetThreadPriority(MainThread, 1);
 							break;
 						}
 						case 1:
 						{
-							ThreadsInfo.at(0).Priority = -1;
+							SetThreadPriority(MainThread, -1);
 							break;
 
 						}
 						case 2:
 						{
-							ThreadsInfo.at(0).Priority = 2;
+							SetThreadPriority(MainThread, 2);
 							break;
 
 						}
 						case 3:
 						{
-							ThreadsInfo.at(0).Priority = -15;
+							SetThreadPriority(MainThread, -15);
 							break;
 
 						}
 						case 4:
 						{
-							ThreadsInfo.at(0).Priority = -2;
+							SetThreadPriority(MainThread, -2);
 							break;
 
 						}
 						case 5:
 						{
-							ThreadsInfo.at(0).Priority = 0;
+							SetThreadPriority(MainThread, 0);
 							break;
 
 						}
 						case 6:
 						{
-							ThreadsInfo.at(0).Priority = 15;
+							SetThreadPriority(MainThread, 15);
 							break;
 
 						}
@@ -343,11 +346,11 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 					SendMessage(hEditG, WM_GETTEXT, MAX_PATH, (LPARAM)g);
 					SendMessage(hEditB, WM_GETTEXT, MAX_PATH, (LPARAM)b);
 
-					ThreadsInfo.at(CurrentSelectThread + 1).Radius = atoi(radius);
+					ThreadsInfo.at(CurrentSelectThread).Radius = atoi(radius);
 
-					ThreadsInfo.at(CurrentSelectThread + 1).rgb.R = atoi(r);
-					ThreadsInfo.at(CurrentSelectThread + 1).rgb.G = atoi(g);
-					ThreadsInfo.at(CurrentSelectThread + 1).rgb.B = atoi(b);
+					ThreadsInfo.at(CurrentSelectThread).rgb.R = atoi(r);
+					ThreadsInfo.at(CurrentSelectThread).rgb.G = atoi(g);
+					ThreadsInfo.at(CurrentSelectThread).rgb.B = atoi(b);
 
 					Sleep(200);
 
@@ -432,22 +435,31 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				case IDNEWTHREAD:
 				{
 					NumberOfThreads++;
+					
 					TCHAR text[1000];
 
-
-					snprintf(text, sizeof text, "%i", NumberOfThreads);
-					SendMessage(hCombo1, CB_ADDSTRING, 0, (LPARAM)((LPSTR)text));
 					
+					if (LastDelete.size() > 0)
+					{
+						snprintf(text, sizeof text, "%i", LastDelete.at(LastDelete.size()-1));
+						LastDelete.pop_back();
+					}
+					else
+					{
+						snprintf(text, sizeof text, "%i", NumberOfThreads - 1);
+					}
+					SendMessage(hCombo1, CB_ADDSTRING, 0, (LPARAM)((LPSTR)text));
+
 					OffThread = 1;
 
 					Thread NewThreadsInfo;
 
 					ThreadsInfo.push_back(NewThreadsInfo);
 
-					ThreadsInfo.at(NumberOfThreads-1).Radius = rand() % 50+10;
-					ThreadsInfo.at(NumberOfThreads-1).rgb.R = rand() % 255;
-					ThreadsInfo.at(NumberOfThreads-1).rgb.G = rand() % 255;
-					ThreadsInfo.at(NumberOfThreads-1).rgb.B = rand() % 255;
+					ThreadsInfo.at(NumberOfThreads-2).Radius = rand() % 50+10;
+					ThreadsInfo.at(NumberOfThreads-2).rgb.R = rand() % 255;
+					ThreadsInfo.at(NumberOfThreads-2).rgb.G = rand() % 255;
+					ThreadsInfo.at(NumberOfThreads-2).rgb.B = rand() % 255;
 
 
 					InvalidateRect(hwnd, NULL, TRUE);
@@ -459,29 +471,32 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				}	
 				case IDDELETETHREAD:
 				{
-					TCHAR text[1000];
+					if (NumberOfThreads > 1)
+					{
+						TCHAR text[1000];
 
-					OffThread = 1;
+						OffThread = 1;
 
 
-					SetWindowText(hCombo1, "");
-					SetWindowText(hCombo2, "");
-					SetWindowText(hEdit, "");
-					SetWindowText(hEditR, "");
-					SetWindowText(hEditG, "");
-					SetWindowText(hEditB, "");
+						SetWindowText(hCombo1, "");
+						SetWindowText(hCombo2, "");
+						SetWindowText(hEdit, "");
+						SetWindowText(hEditR, "");
+						SetWindowText(hEditG, "");
+						SetWindowText(hEditB, "");
 
-					SendMessage(hCombo1, CB_DELETESTRING, NumberOfThreads-2, NULL);
+						LastDelete.push_back(CurrentSelectThread+1);
+						SendMessage(hCombo1, CB_DELETESTRING, CurrentSelectThread, NULL);
+						Threads.erase(Threads.begin() + CurrentSelectThread);
+						ThreadsInfo.erase(ThreadsInfo.begin() + CurrentSelectThread);
 
-					Threads.erase(Threads.begin() + CurrentSelectThread);
-					ThreadsInfo.erase(ThreadsInfo.begin() + CurrentSelectThread+1);
+						NumberOfThreads--;
 
-					NumberOfThreads--;
+						InvalidateRect(hwnd, NULL, TRUE);
 
-					InvalidateRect(hwnd, NULL, TRUE);
-
-					Sleep(500);
-					OffThread = 0;
+						Sleep(500);
+						OffThread = 0;
+					}
 					break;
 
 				}
@@ -510,47 +525,58 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 				SetThreadPriority(Threads.at(i), CurrentThreadInfo.Priority);
 			}
+			
+			switch (GetThreadPriority(MainThread))
+				{
+				case -15:
+				{
+					SetWindowText(hCombo3, "IDLE");
+					break;
+				}
+				case -2:
+				{
+					SetWindowText(hCombo3, "LOWEST");
+					break;
+				}
+				case -1:
+				{
+					SetWindowText(hCombo3, "BELOW NORMAL");
+					break;
+				}
+				case 0:
+				{
+					SetWindowText(hCombo3, "NORMAL");
+					break;
+				}
+				case 1:
+				{
+					SetWindowText(hCombo3, "ABOVE NORMAL");
+					break;
+				}
+				case 2:
+				{
+					SetWindowText(hCombo3, "HIGHEST");
+					break;
+				}
+				case 15:
+				{
+					SetWindowText(hCombo3, "TIME CRITICAL");
+					break;
+				}
 
-			switch (GetThreadPriority(Threads.at(0)))
+				}
+			/*if (NumberOfThreads > 1 && CurrentSelectThread != 1)
 			{
-			case -15:
-			{
-				SetWindowText(hCombo3, "IDLE");
-				break;
-			}
-			case -2:
-			{
-				SetWindowText(hCombo3, "LOWEST");
-				break;
-			}
-			case -1:
-			{
-				SetWindowText(hCombo3, "BELOW NORMAL");
-				break;
-			}
-			case 0:
-			{
-				SetWindowText(hCombo3, "NORMAL");
-				break;
-			}
-			case 1:
-			{
-				SetWindowText(hCombo3, "ABOVE NORMAL");
-				break;
-			}
-			case 2:
-			{
-				SetWindowText(hCombo3, "HIGHEST");
-				break;
-			}
-			case 15:
-			{
-				SetWindowText(hCombo3, "TIME CRITICAL");
-				break;
-			}
+				Sleep(100);
+				HBRUSH brush = CreateSolidBrush(RGB(
+					ThreadsInfo.at(CurrentSelectThread + 1).rgb.R,
+					ThreadsInfo.at(CurrentSelectThread + 1).rgb.G,
+					ThreadsInfo.at(CurrentSelectThread + 1).rgb.B));
 
-			}
+				SelectObject(hdc, brush);
+				Rectangle(hdc, 752, 242, 708, 200);
 
+			}*/
 			return 0;
 		}
 		case WM_CLOSE:

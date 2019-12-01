@@ -1,6 +1,8 @@
 #include <iostream>
 #include <ctime>
 #include <cmath>
+#include <algorithm>
+#include <vector>
 #define alpha 2.0f
 
 using namespace std;
@@ -29,14 +31,15 @@ float XCount()
 
 float YCount()
 {
-	int y = rand() % 20;
-	return pow(y / 20.0f, 16.0f / 15.0f);
+	float b = alpha / 30.0f;
+	return ((b + 1) * pow(rand() % 20, b)) / (pow(20.0f, b + 1));
 }
 
 int main()
 {
-	setlocale(LC_ALL, "Russian");
 	srand(time(NULL));
+	vector <float> arr;
+	setlocale(LC_ALL, "Russian");
 	int number = 0;
 	float d,X,Y,P;
 
@@ -44,30 +47,37 @@ int main()
 	{
 		X = XCount();
 		Y = YCount();
-		if (dCount(X, Y) > (1.f - (alpha / 30.f))* (alpha + 3.f))
+		arr.push_back(dCount(X, Y));
+		if (arr.at(i) > (1.0f - (alpha / 30.0f))* (alpha + 3.0f))
 		{
 			number++;
 		}
 	}
 
+	sort(arr.begin(), arr.end());
 	P = float(number) / 50.0f;
 	cout << "50: " << endl;
 	cout << "Вероятность что d превысит = " << P << endl;
-	cout << "Квантиль уровня 0.9 d = " << endl << endl;
+	cout << "Квантиль уровня 0.9 d = " << arr.at(46) << endl << endl;
 
+	number = 0;
+	vector <float> arr2;
 
 	for (int i = 0; i < 500; i++)
 	{
 		X = XCount();
 		Y = YCount();
-		if (dCount(X, Y) > (1.f - (alpha / 30.f))* (alpha + 3.f))
+		arr2.push_back(dCount(X, Y));
+		if (arr2.at(i) > (1.0f - (alpha / 30.0f))* (alpha + 3.0f))
 		{
 			number++;
 		}
 	}
 
+	sort(arr2.begin(), arr2.end());
+
 	P = float(number) / 500.0f;
 	cout << "500: " << endl;
 	cout << "Вероятность что d превысит = " << P << endl;
-	cout << "Квантиль уровня 0.9 d = " << endl;
+	cout << "Квантиль уровня 0.9 d = " << arr2.at(451) << endl << endl;
 }

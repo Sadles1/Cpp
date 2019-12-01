@@ -1,0 +1,73 @@
+#include <iostream>
+#include <ctime>
+#include <cmath>
+#define alpha 2.0f
+
+using namespace std;
+
+float dCount(float X,float Y)
+{
+	return (1.f - alpha / 30.f) * X + alpha / 30.f * Y;
+}
+
+float XCount()
+{
+	int r = rand() % 100 + 1;
+	if (r <= 10)
+	{
+		return alpha;
+	}
+	if (r > 10 && r <= 60)
+	{
+		return alpha + 1.0f;
+	}
+	if (r > 60)
+	{
+		return alpha + 3.0f;
+	}
+}
+
+float YCount()
+{
+	int y = rand() % 20;
+	return pow(y / 20.0f, 16.0f / 15.0f);
+}
+
+int main()
+{
+	setlocale(LC_ALL, "Russian");
+	srand(time(NULL));
+	int number = 0;
+	float d,X,Y,P;
+
+	for (int i = 0; i < 50; i++)
+	{
+		X = XCount();
+		Y = YCount();
+		if (dCount(X, Y) > (1.f - (alpha / 30.f))* (alpha + 3.f))
+		{
+			number++;
+		}
+	}
+
+	P = float(number) / 50.0f;
+	cout << "50: " << endl;
+	cout << "Вероятность что d превысит = " << P << endl;
+	cout << "Квантиль уровня 0.9 d = " << endl << endl;
+
+
+	for (int i = 0; i < 500; i++)
+	{
+		X = XCount();
+		Y = YCount();
+		if (dCount(X, Y) > (1.f - (alpha / 30.f))* (alpha + 3.f))
+		{
+			number++;
+		}
+	}
+
+	P = float(number) / 500.0f;
+	cout << "500: " << endl;
+	cout << "Вероятность что d превысит = " << P << endl;
+	cout << "Квантиль уровня 0.9 d = " << endl;
+}

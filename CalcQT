@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include<QMessageBox>
+#include <QMessageBox>
 #include <cmath>
 double num_first=0;
 
@@ -94,27 +94,32 @@ void MainWindow::on_pushButton_dot_clicked()
 
 void MainWindow::math_operations()
 {
+
     QPushButton  *button = (QPushButton*)sender();//ссылка на нажатую кнопку
 
     num_first=ui->result_show->text().toDouble();
+
     ui->result_show->setText("");
+    ui->EnterLabel->setText("");
 
     ui->pushButton_plus->setChecked(false);
     ui->pushButton_minus->setChecked(false);
     ui->pushButton_mult->setChecked(false);
     ui->pushButton_div->setChecked(false);
 
+    ui->EnterLabel->setText(QString::number(num_first,'g',15)+button->text());
     button->setChecked(true);
 
 }
 
 void MainWindow::on_pushButton_clear_clicked()
 {
+
     ui->pushButton_plus->setChecked(false);
     ui->pushButton_minus->setChecked(false);
     ui->pushButton_mult->setChecked(false);
     ui->pushButton_div->setChecked(false);
-
+    ui->EnterLabel->setText("");
     ui->result_show->setText("0");
 
 }
@@ -162,11 +167,12 @@ void MainWindow::on_pushButton_res_clicked()
             }
             ui->pushButton_div->setChecked(false);
         }
+        ui->EnterLabel->setText(ui->EnterLabel->text()+QString::number(num_second,'g',15));
     }
-    catch (double a)
+    catch (const std::exception& ex)
     {
         QMessageBox msgBox;
-        msgBox.setText("Ошибка!!\nЧисло слишком большое");
+        msgBox.setText("Ошибка!!");
         msgBox.exec();
     }
 
@@ -196,3 +202,9 @@ void MainWindow::on_pushButton_sqrt_clicked()
     QString new_label=QString::number(number,'g',15);
     ui->result_show->setText(new_label);
 }
+
+void MainWindow::on_pushButton_clicked()
+{
+    
+}
+

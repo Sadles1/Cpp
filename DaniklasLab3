@@ -1,0 +1,124 @@
+#include <iostream>
+#include <string>
+
+class Сonditioner
+{
+public:
+	void OnOffCond()
+	{
+		if (onConditioner)
+		{
+			onConditioner = 0;
+		}
+		else
+		{
+			onConditioner = 1;
+		}
+	}
+
+	void OnOffHumidifier()
+	{
+		if (onHumidifier)
+		{
+			onHumidifier = 0;
+		}
+		else
+		{
+			onHumidifier = 1;
+		}
+	}
+
+	void ChangeTemperature(float newTemperature)
+	{
+		Temperature = newTemperature;
+	}
+
+	bool GetonConditioner()
+	{
+		return onConditioner;
+	}
+	
+	bool GetonHumidifier()
+	{
+		return onHumidifier;
+	}
+
+
+	float GetTemperature()
+	{
+		return Temperature;
+	}
+
+private:
+
+	float Temperature = 20.0;
+	bool onConditioner = 0;
+	bool onHumidifier = 0;//Увлажнение воздуха(есть в некоторых кондиционерах)
+
+};
+
+int main()
+{
+	setlocale(LC_ALL, "rus");
+	Сonditioner Cond1;
+	int choice;
+	while (1)
+	{
+		std::cout << "Кондиционер\n\n";
+		if (Cond1.GetonConditioner())
+		{
+			std::cout << "Температура: " << Cond1.GetTemperature() << "\n" << "Увлажнение: ";
+			if (Cond1.GetonHumidifier())
+				std::cout << "Включено\n\n";
+			else
+				std::cout << "Выключено\n\n";
+			std::cout << "1)Изменить температуру\n2)Включить увлажнение воздуха\n3)Выключить\n\n>>> ";
+			std::cin >> choice;
+			switch (choice)
+			{
+				case 1:
+				{
+					float newTemperature;
+					std::cout << "Введите новую температуру: ";
+					std::cin >> newTemperature;
+					Cond1.ChangeTemperature(newTemperature);
+					system("cls");
+					break;
+				}
+				case 2:
+				{
+					Cond1.OnOffHumidifier();
+					system("cls");
+					break;
+				}
+				case 3:
+				{
+					Cond1.OnOffCond();
+					system("cls");
+					break;
+				}
+				default:
+				{
+					system("cls");
+					std::cout << "Ошибка ввода\n\n";
+					break;
+				}
+			}
+		}
+		else
+		{
+			std::cout << "1)Включить\n\n>>> ";
+			std::cin >> choice;
+			if (choice == 1)
+			{
+				Cond1.OnOffCond();
+				system("cls");
+			}
+			else
+			{
+				system("cls");
+				std::cout << "Ошибка при вводе\n\n";
+			}
+		}	
+	}
+}

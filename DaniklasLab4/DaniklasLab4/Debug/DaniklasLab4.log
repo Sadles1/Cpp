@@ -1,0 +1,4 @@
+﻿  DaniklasLab4.cpp
+C:\Users\Sadles\source\repos\DaniklasLab4\DaniklasLab4\DaniklasLab4.cpp(142,29): warning C4244: аргумент: преобразование "int" в "float", возможна потеря данных
+C:\Users\Sadles\source\repos\DaniklasLab4\DaniklasLab4\DaniklasLab4.cpp(193,14): warning C4154: удаление массива; выполнено преобразование к указателю
+  DaniklasLab4.vcxproj -> C:\Users\Sadles\source\repos\DaniklasLab4\Debug\DaniklasLab4.exe

@@ -17,5 +17,14 @@ void Keyboard::show()
 	std::cout << "Цвет: " << Color << std::endl;
 	std::cout << "Производитель: " << Manufacturer << std::endl;
 	std::cout << "Цена: " << Price << std::endl;
-	std::cout << "Кол-во клавиш: " << NumbOfKey << "\n\n";
+	std::cout << "Кол-во клавиш: " << NumbOfKey << std::endl;
+	std::cout << "Наличие: ";
+	if (inStock)
+	{
+		std::cout << "Есть\n\n";
+	}
+	else
+	{
+		std::cout << "Нету\n\n";
+	}
 }	

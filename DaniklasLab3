@@ -1,20 +1,10 @@
 #include <iostream>
+#include <windows.h>
 #include <string>
 
 class Сonditioner
 {
 public:
-	void OnOffCond()
-	{
-		if (onConditioner)
-		{
-			onConditioner = 0;
-		}
-		else
-		{
-			onConditioner = 1;
-		}
-	}
 
 	void OnOffHumidifier()
 	{
@@ -30,12 +20,8 @@ public:
 
 	void ChangeTemperature(float newTemperature)
 	{
+		Sleep(500*abs(Temperature - newTemperature));
 		Temperature = newTemperature;
-	}
-
-	bool GetonConditioner()
-	{
-		return onConditioner;
 	}
 	
 	bool GetonHumidifier()
@@ -43,16 +29,27 @@ public:
 		return onHumidifier;
 	}
 
-
 	float GetTemperature()
 	{
 		return Temperature;
 	}
 
+	void SetAirSpeed(int newAirSpeed)
+	{
+		AirSpeed=newAirSpeed;
+	}
+
+	int GetAirSpeed()
+	{
+		return AirSpeed;
+	}
+
+
+
 private:
 
+	int AirSpeed = 1;
 	float Temperature = 20.0;
-	bool onConditioner = 0;
 	bool onHumidifier = 0;//Увлажнение воздуха(есть в некоторых кондиционерах)
 
 };
@@ -65,60 +62,54 @@ int main()
 	while (1)
 	{
 		std::cout << "Кондиционер\n\n";
-		if (Cond1.GetonConditioner())
+		std::cout << "Температура: " << Cond1.GetTemperature() << "\n" <<"Скорость потока воздуха: " << Cond1.GetAirSpeed() << "\nУвлажнение: ";
+		if (Cond1.GetonHumidifier())
+			std::cout << "Включено\n\n";
+		else
+			std::cout << "Выключено\n\n";
+		std::cout << "1)Изменить температуру\n2)Включить увлажнение воздуха\n3)Изменить Скорость потока воздуха\n\n>>> ";
+		std::cin >> choice;
+		switch (choice)
 		{
-			std::cout << "Температура: " << Cond1.GetTemperature() << "\n" << "Увлажнение: ";
-			if (Cond1.GetonHumidifier())
-				std::cout << "Включено\n\n";
-			else
-				std::cout << "Выключено\n\n";
-			std::cout << "1)Изменить температуру\n2)Включить увлажнение воздуха\n3)Выключить\n\n>>> ";
-			std::cin >> choice;
-			switch (choice)
+			case 1:
 			{
-				case 1:
+				float newTemperature;
+				std::cout << "Введите новую температуру: ";
+				std::cin >> newTemperature;
+				Cond1.ChangeTemperature(newTemperature);
+				system("cls");
+				break;
+			}
+			case 2:
+			{
+				Cond1.OnOffHumidifier();
+				system("cls");
+				break;
+			}
+			case 3:
+			{
+				int newAirSpeed;
+				std::cout << "Введите скорость(1-5): ";
+				std::cin >> newAirSpeed;
+				if (newAirSpeed < 6 && newAirSpeed > 0)
 				{
-					float newTemperature;
-					std::cout << "Введите новую температуру: ";
-					std::cin >> newTemperature;
-					Cond1.ChangeTemperature(newTemperature);
+					Cond1.SetAirSpeed(newAirSpeed);
 					system("cls");
-					break;
 				}
-				case 2:
-				{
-					Cond1.OnOffHumidifier();
-					system("cls");
-					break;
-				}
-				case 3:
-				{
-					Cond1.OnOffCond();
-					system("cls");
-					break;
-				}
-				default:
+				else
 				{
 					system("cls");
 					std::cout << "Ошибка ввода\n\n";
-					break;
 				}
+				break;
+			}
+			default:
+			{
+				system("cls");
+				std::cout << "Ошибка ввода\n\n";
+				break;
 			}
 		}
-		else
-		{
-			std::cout << "1)Включить\n\n>>> ";
-			std::cin >> choice;
-			if (choice == 1)
-			{
-				Cond1.OnOffCond();
-				system("cls");
-			}
-			else
-			{
-				system("cls");
-				std::cout << "Ошибка при вводе\n\n";
-			}
-		}	
+		
 	}
 }

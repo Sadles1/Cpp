@@ -27,10 +27,15 @@ private slots:
 
     void on_pushButtonRem_clicked();
 
+    void on_pushButtonAddPerson_clicked();
+
+    void on_pushButtonRemPerson_clicked();
+
 private:
     Ui::MainWindow *ui;
     QSqlDatabase m_db; // объект базы данных
     QSqlQuery* query; // указатель на запрос
     QSqlTableModel* model; // указатель на таблицу данных в приложении
+    QSqlTableModel* modelperson; // указатель на таблицу данных в приложении
 };
 #endif // MAINWINDOW_H

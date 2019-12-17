@@ -15,11 +15,11 @@ MainWindow::MainWindow(QWidget *parent)
     if(!m_db.tables().contains("Firm")) // если в базе не существует таблица  Person,
     {
          query->clear(); // очистка запроса
-         query->exec("CREATE   TABLE   Firm(ID   INTEGER   PRIMARY   KEY, Name VARCHAR, Route VARCHAR, RemainingTour INTEGER);");  // исполнение запроса на добавление запис
+         query->exec("CREATE   TABLE   Firm(ID   INTEGER   PRIMARY   KEY, Name VARCHAR, Route VARCHAR, Price INTEGER);");  // исполнение запроса на добавление запис
          query->clear();
-         query->exec("INSERT INTO Firm (ID,Name,Route,RemainingTour) VALUES (1,'Firm1','Perm-Moscow', 20);");
+         query->exec("INSERT INTO Firm (ID,Name,Route,Price) VALUES (1,'Firm1','Perm-Moscow', 20);");
          query->clear();
-         query->exec("INSERT INTO Firm (ID,Name,Route,RemainingTour) VALUES (2,'Firm2','Perm-Moscow', 37);");
+         query->exec("INSERT INTO Firm (ID,Name,Route,Price) VALUES (2,'Firm2','Perm-Moscow', 37);");
     }
     if(!m_db.tables().contains("Person")) // если в базе не существует таблица  Person,
     {
@@ -40,6 +40,8 @@ MainWindow::MainWindow(QWidget *parent)
     modelperson->setEditStrategy(QSqlTableModel::OnFieldChange);
     ui->tableView->setModel(model); //соединение модели// и ее табличного представления в форме
     ui->tableView_2->setModel(modelperson);
+    ui->tableView_3->setModel(model);
+    ui->tableView_4->setModel(modelperson);
 
 }
 
@@ -60,14 +62,14 @@ void MainWindow::on_allDataViewButton_clicked()
 
 void MainWindow::on_filterDataButton_clicked()
 {
-    model->setFilter("RemainingTour>20");
+    model->setFilter("Price>20");
     model->select();
     ui->tableView->setModel(model);
 }
 
 void MainWindow::on_filterData2Button_clicked()
 {
-     model->setFilter("RemainingTour<21");
+     model->setFilter("Price<21");
      model->select();
      ui->tableView->setModel(model);
 }
@@ -81,7 +83,7 @@ void MainWindow::on_pushButtonAdd_clicked()
     QString name = ui->lineEditName->text();
     QString route = ui->lineEditRoute->text();
     QString RemaingTour = ui->lineEditRemainingTour->text();
-    QString buf = tr("INSERT INTO Firm (ID,Name,Route,RemainingTour) VALUES (")+id+tr(",'")+name+tr("','")+route+tr("',")+RemaingTour+tr(");");
+    QString buf = tr("INSERT INTO Firm (ID,Name,Route,Price) VALUES (")+id+tr(",'")+name+tr("','")+route+tr("',")+RemaingTour+tr(");");
     query->clear();
     query->exec(buf);
     model->select();

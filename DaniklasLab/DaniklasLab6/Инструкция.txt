@@ -11,3 +11,4 @@
 	SELECT name, remainingtour FROM contacts WHERE name = 'firma1' and remainingtour>2;
 9) Определите при помощи запроса,  сколько всего  записей имеется в таблице.
 	SELECT COUNT() FROM contacts;
+Что бы взаимодуствовать с 2-ой таблицей необходимо вместо contacts писать Person

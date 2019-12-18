@@ -40,8 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
     modelperson->setEditStrategy(QSqlTableModel::OnFieldChange);
     ui->tableView->setModel(model); //соединение модели// и ее табличного представления в форме
     ui->tableView_2->setModel(modelperson);
-    ui->tableView_3->setModel(model);
-    ui->tableView_4->setModel(modelperson);
+
 
 }
 
@@ -69,7 +68,7 @@ void MainWindow::on_filterDataButton_clicked()
 
 void MainWindow::on_filterData2Button_clicked()
 {
-     model->setFilter("Price<21");
+     model->setFilter("Price < 21");
      model->select();
      ui->tableView->setModel(model);
 }
@@ -121,4 +120,21 @@ void MainWindow::on_pushButtonRemPerson_clicked()
     query->clear();
     query->exec(tr("DELETE FROM Person WHERE ID = ")+id);
     modelperson->select();
+}
+
+void MainWindow::on_pushSort_clicked()
+{
+    if(ui->lineSort->text().isEmpty())
+    {
+        modelperson->setFilter("");
+        modelperson->select();
+    }
+    else
+    {
+        QString Name = ui->lineSort->text();
+        QString buf = tr("");
+        modelperson->setFilter("Firm = '"+Name+"'");
+        modelperson->select();
+    }
+    ui->tableView_2->setModel(modelperson);
 }

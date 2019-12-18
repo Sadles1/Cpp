@@ -31,11 +31,14 @@ private slots:
 
     void on_pushButtonRemPerson_clicked();
 
+    void on_pushSort_clicked();
+
 private:
     Ui::MainWindow *ui;
     QSqlDatabase m_db; // объект базы данных
     QSqlQuery* query; // указатель на запрос
     QSqlTableModel* model; // указатель на таблицу данных в приложении
-    QSqlTableModel* modelperson; // указатель на таблицу данных в приложении
+    QSqlTableModel* modelperson;
+    QSqlTableModel* modelunion;
 };
 #endif // MAINWINDOW_H

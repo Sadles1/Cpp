@@ -17,7 +17,6 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_allDataViewButton_clicked();
 
     void on_filterDataButton_clicked();
 
@@ -27,11 +26,17 @@ private slots:
 
     void on_pushButtonRem_clicked();
 
-    void on_pushButtonAddPerson_clicked();
-
     void on_pushButtonRemPerson_clicked();
 
-    void on_pushSort_clicked();
+    void on_pushButtonAdd_2_clicked();
+
+    void on_filterDataButton_2_clicked();
+
+    void on_filterDataButton_3_clicked();
+
+    void on_filterDataButton_4_clicked();
+
+    void on_filterDataButton_5_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -39,6 +44,5 @@ private:
     QSqlQuery* query; // указатель на запрос
     QSqlTableModel* model; // указатель на таблицу данных в приложении
     QSqlTableModel* modelperson;
-    QSqlTableModel* modelunion;
 };
 #endif // MAINWINDOW_H

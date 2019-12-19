@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include <QMessageBox>
 
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -12,23 +13,23 @@ MainWindow::MainWindow(QWidget *parent)
     query = new QSqlQuery(m_db); // создание объекта для запроса
     if(!m_db.open()) // проверка на ошибку при открытии или создании базы данных
          throw "can't open database";
-    if(!m_db.tables().contains("Firm")) // если в базе не существует таблица  Person,
+    if(!m_db.tables().contains("Firm")) // если в базе не существует таблица  Firm,
     {
          query->clear(); // очистка запроса
-         query->exec("CREATE   TABLE   Firm(ID   INTEGER   PRIMARY   KEY, Name VARCHAR, Route VARCHAR, Price INTEGER);");  // исполнение запроса на добавление запис
+         query->exec("CREATE   TABLE   Firm(ID   INTEGER   PRIMARY   KEY,Route VARCHAR, Price INTEGER,Client VARCHAR);");  // исполнение запроса на добавление запис
          query->clear();
-         query->exec("INSERT INTO Firm (ID,Name,Route,Price) VALUES (1,'Firm1','Perm-Moscow', 20);");
+         query->exec("INSERT INTO Firm (ID,Route,Price,Client) VALUES (1,'Perm-Moscow', 100,'Vasiliy');");
          query->clear();
-         query->exec("INSERT INTO Firm (ID,Name,Route,Price) VALUES (2,'Firm2','Perm-Moscow', 37);");
+         query->exec("INSERT INTO Firm (ID,Route,Price,Client) VALUES (2,'Perm-Moscow', 250,'Andrey');");
     }
     if(!m_db.tables().contains("Person")) // если в базе не существует таблица  Person,
     {
          query->clear(); // очистка запроса
-         query->exec("CREATE   TABLE   Person(ID   INTEGER   PRIMARY   KEY, Name VARCHAR, Route VARCHAR, Firm VARCHAR);");  // исполнение запроса на добавление запис
+         query->exec("CREATE   TABLE   Person(ID   INTEGER   PRIMARY   KEY, Name VARCHAR, Age INTEGER);");  // исполнение запроса на добавление запис
          query->clear();
-         query->exec("INSERT INTO Person(ID,Name,Route,Firm) VALUES (1,'Andrey','Perm-Moscow', 'Firm1');");
+         query->exec("INSERT INTO Person(ID,Name,Age) VALUES (1,'Vasiliy', 23);");
          query->clear();
-         query->exec("INSERT INTO Person(ID,Name,Route,Firm) VALUES (2,'Elena','Perm-Moscow', 'Firm2');");
+         query->exec("INSERT INTO Person(ID,Name,Age) VALUES (2,'Andrey',32);");
     }
     model = new QSqlTableModel(this,m_db); // создание редактируемой модели базы данных
     modelperson=new QSqlTableModel(this,m_db);
@@ -52,23 +53,17 @@ MainWindow::~MainWindow()
 }
 
 
-void MainWindow::on_allDataViewButton_clicked()
-{
-    model->setFilter("");
-    model->select();
-    ui->tableView->setModel(model);
-}
 
 void MainWindow::on_filterDataButton_clicked()
 {
-    model->setFilter("Price>20");
+    model->sort(2,Qt::AscendingOrder);
     model->select();
     ui->tableView->setModel(model);
 }
 
 void MainWindow::on_filterData2Button_clicked()
 {
-     model->setFilter("Price < 21");
+     model->sort(2,Qt::DescendingOrder);
      model->select();
      ui->tableView->setModel(model);
 }
@@ -76,16 +71,21 @@ void MainWindow::on_filterData2Button_clicked()
 void MainWindow::on_pushButtonAdd_clicked()
 {
 
-    if(ui->lineEditName->text().isEmpty()||ui->lineEditRemainingTour->text().isEmpty()||ui->lineEditID->text().isEmpty()||ui->lineEditRoute->text().isEmpty())
+    if(ui->lineEditClient->text().isEmpty()||ui->lineEditPrice->text().isEmpty()||ui->lineEditID->text().isEmpty()||ui->lineEditRoute->text().isEmpty())
             return;
     QString id = ui->lineEditID->text();
-    QString name = ui->lineEditName->text();
+    QString Client = ui->lineEditClient->text();
     QString route = ui->lineEditRoute->text();
-    QString RemaingTour = ui->lineEditRemainingTour->text();
-    QString buf = tr("INSERT INTO Firm (ID,Name,Route,Price) VALUES (")+id+tr(",'")+name+tr("','")+route+tr("',")+RemaingTour+tr(");");
+    QString Price = ui->lineEditPrice->text();
+    QString buf = tr("INSERT INTO Firm (ID,Route,Price,Client) VALUES (")+id+tr(",'")+route+tr("',")+Price+tr(",'")+Client+tr("');");
     query->clear();
     query->exec(buf);
+    buf = tr("INSERT INTO Person(ID,Name) VALUES (")+id+tr(",'")+Client+tr("');");
+    query->clear();
+    query->exec(buf);
+
     model->select();
+    modelperson->select();
 }
 
 void MainWindow::on_pushButtonRem_clicked()
@@ -94,22 +94,11 @@ void MainWindow::on_pushButtonRem_clicked()
          return;
      QString id = ui->lineEditID->text();
      query->clear();
+     query->exec(tr("DELETE FROM Person WHERE ID = ")+id);
+     query->clear();
      query->exec(tr("DELETE FROM Firm WHERE ID = ")+id);
      model->select();
-}
-
-void MainWindow::on_pushButtonAddPerson_clicked()
-{
-    if(ui->lineEditNamePerson->text().isEmpty()||ui->lineEditFirm->text().isEmpty()||ui->lineEditIDPerson->text().isEmpty()||ui->lineEditRoutePerson->text().isEmpty())
-            return;
-    QString id = ui->lineEditIDPerson->text();
-    QString name = ui->lineEditNamePerson->text();
-    QString route = ui->lineEditRoutePerson->text();
-    QString firm = ui->lineEditFirm->text();
-    QString buf = tr("INSERT INTO Person(ID,Name,Route,Firm) VALUES (")+id+tr(",'")+name+tr("','")+route+tr("','")+firm+tr("');");
-    query->clear();
-    query->exec(buf);
-    modelperson->select();
+     modelperson->select();
 }
 
 void MainWindow::on_pushButtonRemPerson_clicked()
@@ -119,22 +108,57 @@ void MainWindow::on_pushButtonRemPerson_clicked()
     QString id = ui->lineEditIDPerson->text();
     query->clear();
     query->exec(tr("DELETE FROM Person WHERE ID = ")+id);
+    query->clear();
+    query->exec(tr("DELETE FROM Firm WHERE ID = ")+id);
+    model->select();
     modelperson->select();
 }
 
-void MainWindow::on_pushSort_clicked()
+void MainWindow::on_pushButtonAdd_2_clicked()
 {
-    if(ui->lineSort->text().isEmpty())
-    {
-        modelperson->setFilter("");
-        modelperson->select();
-    }
-    else
-    {
-        QString Name = ui->lineSort->text();
-        QString buf = tr("");
-        modelperson->setFilter("Firm = '"+Name+"'");
-        modelperson->select();
-    }
+    if(ui->lineEditClient_2->text().isEmpty()||ui->lineEditAge->text().isEmpty())
+        return;
+
+    QString id =ui->lineEditIDPerson->text();
+    QString Client = ui->lineEditClient_2->text();
+    QString Age = ui->lineEditAge->text();
+    QString buf = tr("INSERT INTO Person(ID,Name,Age) VALUES (")+id+tr(",'")+Client+tr("',")+Age+tr(");");
+    query->clear();
+    query->exec(buf);
+    buf = tr("INSERT INTO Firm (ID,Client) VALUES (")+id+tr(",'")+Client+tr("');");
+    query->clear();
+    query->exec(buf);
+
+    model->select();
+    modelperson->select();
+
+}
+
+void MainWindow::on_filterDataButton_2_clicked()
+{
+    model->sort(3,Qt::AscendingOrder);
+    model->select();
+    ui->tableView->setModel(model);
+}
+
+
+void MainWindow::on_filterDataButton_3_clicked()
+{
+    model->sort(3,Qt::DescendingOrder);
+    model->select();
+    ui->tableView->setModel(model);
+}
+
+void MainWindow::on_filterDataButton_4_clicked()
+{
+    modelperson->sort(1,Qt::AscendingOrder);
+    modelperson->select();
+    ui->tableView_2->setModel(modelperson);
+}
+
+void MainWindow::on_filterDataButton_5_clicked()
+{
+    modelperson->sort(1,Qt::DescendingOrder);
+    modelperson->select();
     ui->tableView_2->setModel(modelperson);
 }

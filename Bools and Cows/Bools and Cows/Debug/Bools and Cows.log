@@ -1,8 +1,0 @@
-﻿  Bools and Cows.cpp
-C:\Users\Sadles\source\repos\Bools and cows\Bools and Cows\Bools and Cows.cpp(10,1): warning C4326: возвращаемый тип "main" должен быть "int", а не "void"
-C:\Users\Sadles\source\repos\Bools and cows\Bools and Cows\Bools and Cows.cpp(12,12): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
-  Singleplayer.cpp
-C:\Users\Sadles\source\repos\Bools and cows\Bools and Cows\Bools and Cows.cpp(151,12): warning C4102: MenuCreate: неиспользованная метка
-  Создание кода...
-C:\Users\Sadles\source\repos\Bools and cows\Bools and Cows\Singleplayer.cpp(101,27): warning C4101: ComputerOldStepElement: неиспользованная локальная переменная
-  Bools and Cows.vcxproj -> C:\Users\Sadles\source\repos\Bools and cows\Debug\Bools and Cows.exe

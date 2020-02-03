@@ -1,0 +1,3 @@
+﻿  Source.cpp
+C:\Users\Sadles\Documents\GitHub\Cpp\Games\WordJumЬle\WordJumЬle\Source.cpp(22,12): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
+  WordJumЬle.vcxproj -> C:\Users\Sadles\Documents\GitHub\Cpp\Games\WordJumЬle\Debug\WordJumЬle.exe
